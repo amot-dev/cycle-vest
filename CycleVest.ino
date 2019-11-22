@@ -39,6 +39,44 @@ public:
   void updateBlinkerLights();
 };
 
+//create light set objects (output, input)
+LightSet LeftArmBrakes(8, 9);
+LightSet LeftArmBlinkers(4, 3);
+
+void setup() {
+  // initialize serial communication at 9600 bits per second
+  Serial.begin(9600);
+  delay(500);
+  Serial.println("Arduino Online.");
+  //initialize pins
+  LeftArmBrakes.initializePins();
+  LeftArmBlinkers.initializePins();
+  pinMode(PIN_NIGHT_LED, OUTPUT);
+}
+
+void loop() {
+  //get current time
+  currentTime = millis();
+  
+  //LEFT ARM BLINKERS
+  LeftArmBlinkers.updateButtonState();
+  LeftArmBlinkers.updateBlinkerLights();
+  
+  //LEFT ARM BRAKES
+  LeftArmBrakes.updateButtonState();
+  LeftArmBrakes.updateBrakeLights();
+  
+  //NIGHT LIGHT
+  //read value from photoresistor
+  photoResistorAnalogue = analogRead(A0);
+  Serial.println(photoResistorAnalogue);
+  //if the light level is low, turn on the night light
+  if (photoResistorAnalogue < 750) digitalWrite(PIN_NIGHT_LED, HIGH);
+  //if the light level is high, turn off the night light
+  else digitalWrite(PIN_NIGHT_LED, LOW);
+}
+
+
 LightSet::LightSet(int outputPin, int inputPin){
   LEDPin = outputPin;
   buttonPin = inputPin;
@@ -104,40 +142,3 @@ void LightSet::updateBlinkerLights(){
     }
   }
 };
-
-//create light set objects (output, input)
-LightSet LeftArmBrakes(8, 9);
-LightSet LeftArmBlinkers(4, 3);
-
-void setup() {
-  // initialize serial communication at 9600 bits per second
-  Serial.begin(9600);
-  delay(500);
-  Serial.println("Arduino Online.");
-  //initialize pins
-  LeftArmBrakes.initializePins();
-  LeftArmBlinkers.initializePins();
-  pinMode(PIN_NIGHT_LED, OUTPUT);
-}
-
-void loop() {
-  //get current time
-  currentTime = millis();
-  
-  //LEFT ARM BLINKERS
-  LeftArmBlinkers.updateButtonState();
-  LeftArmBlinkers.updateBlinkerLights();
-  
-  //LEFT ARM BRAKES
-  LeftArmBrakes.updateButtonState();
-  LeftArmBrakes.updateBrakeLights();
-  
-  //NIGHT LIGHT
-  //read value from photoresistor
-  photoResistorAnalogue = analogRead(A0);
-  Serial.println(photoResistorAnalogue);
-  //if the light level is low, turn on the night light
-  if (photoResistorAnalogue < 750) digitalWrite(PIN_NIGHT_LED, HIGH);
-  //if the light level is high, turn off the night light
-  else digitalWrite(PIN_NIGHT_LED, LOW);
-}
