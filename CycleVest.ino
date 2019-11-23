@@ -11,7 +11,7 @@ unsigned long currentTime = 0;
 class LightSet{
 private:
   //the delay between blinks
-  const static int BLINK_DELAY = 350;
+  const static int BLINK_DELAY = 1000;
   
   //pin numbers
   int LEDPin;
@@ -19,6 +19,8 @@ private:
   
   //contains the current state of the button (pressed or not)
   byte buttonState = LOW;
+  //contains whether the button code has been executed or not
+  bool buttonCodeExecuted = false;
   //contains the current state of the LEDs (on or off)
   byte lightState = LOW;
   //contains the blinking state of the LEDs (blinking or not)
@@ -40,14 +42,15 @@ public:
 };
 
 //create light set objects (output, input)
-LightSet LeftArmBrakes(8, 9);
-LightSet LeftArmBlinkers(4, 3);
+LightSet LeftArmBrakes(10,7);
+LightSet LeftArmBlinkers(9,8);
 
 void setup() {
-  // initialize serial communication at 9600 bits per second
+  //initialize serial communication at 9600 bits per second
   Serial.begin(9600);
-  delay(500);
+  delay(2000);
   Serial.println("Arduino Online.");
+  
   //initialize pins
   LeftArmBrakes.initializePins();
   LeftArmBlinkers.initializePins();
@@ -55,8 +58,12 @@ void setup() {
 }
 
 void loop() {
+  /*delay(2000);*/
+  
   //get current time
   currentTime = millis();
+  /*Serial.println("Current Time:");
+  Serial.println(currentTime);*/
   
   //LEFT ARM BLINKERS
   LeftArmBlinkers.updateButtonState();
@@ -69,7 +76,8 @@ void loop() {
   //NIGHT LIGHT
   //read value from photoresistor
   photoResistorAnalogue = analogRead(A0);
-  Serial.println(photoResistorAnalogue);
+  /*Serial.println(photoResistorAnalogue);*/
+  
   //if the light level is low, turn on the night light
   if (photoResistorAnalogue < 750) digitalWrite(PIN_NIGHT_LED, HIGH);
   //if the light level is high, turn off the night light
@@ -91,10 +99,17 @@ void LightSet::updateLEDs(){
 void LightSet::updateButtonState(){
   //read state from button
   buttonState = digitalRead(buttonPin);
+  /*Serial.println("Button State:");
+  Serial.println(buttonState);*/
 };
 void LightSet::updateBrakeLights(){
+  /*Serial.println("Blinking:");
+  Serial.println(blinking);
+  Serial.println("Light State:");
+  Serial.println(lightState);*/
+  
   //if the button is pressed
-  if (buttonState == HIGH) {
+  if (buttonState == LOW) {
     //if the lights are on, turn them off
     if (lightState == HIGH) lightState = LOW;
     //if the lights are off, turn them on
@@ -103,14 +118,13 @@ void LightSet::updateBrakeLights(){
   }
 };
 void LightSet::updateBlinkerLights(){
-  Serial.println("Button state is: ");
-  Serial.println(buttonState);
-  Serial.println("Blinking state is: ");
+  /*Serial.println("Blinking:");
   Serial.println(blinking);
-  Serial.println("LED state is: ");
-  Serial.println(lightState);
-  //if the button is pressed
-  if (buttonState == HIGH){
+  Serial.println("Light State:");
+  Serial.println(lightState);*/
+  
+  //if the button is pressed and code has not yet been run
+  if (buttonState == LOW && !buttonCodeExecuted){
     //if the lights are blinking
     if (blinking){
       //stop the blinking
@@ -125,20 +139,18 @@ void LightSet::updateBlinkerLights(){
     else {
       //begin blinking
       blinking = true;
-      //turn the lights on
-      lightState = HIGH;
-      updateLEDs();
     }
   }
-  //regular course of action (button not pressed)
-  else {
-    //if elapsed time is not less than the delay between blinks and the lights are supposed to be blinking
-    if (((currentTime - lastBlinkerUpdateTime) >= BLINK_DELAY) && blinking) {
-      //if the lights are on, turn them off
-      if (lightState == HIGH) lightState = LOW;
-      //if the lights are off, turn them on
-      else lightState = HIGH;
-      updateLEDs();
-    }
+  
+  //if the button is released, sets the button code to 'not been run'
+  else if (buttonState == HIGH) buttonCodeExecuted = false;
+  
+  //if elapsed time is not less than the delay between blinks and the lights are supposed to be blinking
+  if (((currentTime - lastBlinkerUpdateTime) >= BLINK_DELAY) && blinking) {
+    //if the lights are on, turn them off
+    if (lightState == HIGH) lightState = LOW;
+    //if the lights are off, turn them on
+    else lightState = HIGH;
+    updateLEDs();
   }
 };
