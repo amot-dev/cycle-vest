@@ -108,14 +108,16 @@ void LightSet::updateBrakeLights(){
   Serial.println("Light State:");
   Serial.println(lightState);*/
   
-  //if the button is pressed
-  if (buttonState == LOW) {
+  //if the button is pressed and code has not yet been run
+  if (buttonState == LOW && !buttonCodeExecuted) {
     //if the lights are on, turn them off
     if (lightState == HIGH) lightState = LOW;
     //if the lights are off, turn them on
     else lightState = HIGH;
     updateLEDs();
   }
+  //if the button is released, sets the button code to 'not been run'
+  else if (buttonState == HIGH) buttonCodeExecuted = false;
 };
 void LightSet::updateBlinkerLights(){
   /*Serial.println("Blinking:");
