@@ -1,5 +1,5 @@
 //constant containing the night light pin number
-const int PIN_NIGHT_LED = 2;
+const int PIN_NIGHT_LED = 8;
 
 //initialize variable to hold photoresistor analogue value (0 - 1023)
 int photoResistorAnalogue = 0;
@@ -11,7 +11,7 @@ unsigned long currentTime = 0;
 class LightSet{
 private:
   //the delay between blinks
-  const static int BLINK_DELAY = 1000;
+  const static int BLINK_DELAY = 350;
   
   //pin numbers
   int LEDPin;
@@ -42,8 +42,8 @@ public:
 };
 
 //create light set objects (output, input)
-LightSet LeftArmBrakes(10,7);
-LightSet LeftArmBlinkers(9,8);
+LightSet LeftArmBrakes(3,2);    //smaller button
+LightSet LeftArmBlinkers(5,7);  //larger button
 
 void setup() {
   //initialize serial communication at 9600 bits per second
@@ -75,13 +75,16 @@ void loop() {
   
   //NIGHT LIGHT
   //read value from photoresistor
-  photoResistorAnalogue = analogRead(A0);
-  /*Serial.println(photoResistorAnalogue);*/
+  photoResistorAnalogue = analogRead(A2);
+  ///*
+  Serial.println(photoResistorAnalogue);
+  //*/
   
   //if the light level is low, turn on the night light
-  if (photoResistorAnalogue < 750) digitalWrite(PIN_NIGHT_LED, HIGH);
+  if (photoResistorAnalogue > 400) digitalWrite(PIN_NIGHT_LED, LOW);
+  //if (photoResistorAnalogue < 750) digitalWrite(PIN_NIGHT_LED, LOW);
   //if the light level is high, turn off the night light
-  else digitalWrite(PIN_NIGHT_LED, LOW);
+  else digitalWrite(PIN_NIGHT_LED, HIGH);
 }
 
 
@@ -99,17 +102,22 @@ void LightSet::updateLEDs(){
 void LightSet::updateButtonState(){
   //read state from button
   buttonState = digitalRead(buttonPin);
-  /*Serial.println("Button State:");
-  Serial.println(buttonState);*/
+  /*
+  Serial.println("Button State:");
+  Serial.println(buttonState);
+  */
 };
 void LightSet::updateBrakeLights(){
-  /*Serial.println("Blinking:");
+  /*
+  Serial.println("Blinking:");
   Serial.println(blinking);
   Serial.println("Light State:");
-  Serial.println(lightState);*/
+  Serial.println(lightState);
+  */
   
   //if the button is pressed and code has not yet been run
   if (buttonState == LOW && !buttonCodeExecuted) {
+    buttonCodeExecuted = true;
     //if the lights are on, turn them off
     if (lightState == HIGH) lightState = LOW;
     //if the lights are off, turn them on
@@ -127,6 +135,7 @@ void LightSet::updateBlinkerLights(){
   
   //if the button is pressed and code has not yet been run
   if (buttonState == LOW && !buttonCodeExecuted){
+    buttonCodeExecuted = true;
     //if the lights are blinking
     if (blinking){
       //stop the blinking
@@ -154,5 +163,6 @@ void LightSet::updateBlinkerLights(){
     //if the lights are off, turn them on
     else lightState = HIGH;
     updateLEDs();
+    lastBlinkerUpdateTime = currentTime;
   }
 };
